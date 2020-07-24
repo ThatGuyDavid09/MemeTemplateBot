@@ -17,12 +17,9 @@ import time
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
-# searchword1 = ''
-# searchword2 = 'dog'
-# searchword3 = 'cartoon'
-# searchurl = 'https://www.google.com/search?q=' + searchword1 + '&source=lnms&tbm=isch'
+search_term = "Test Test"
 
-searchurl = "https://www.google.com/search?q=madara+uchiha+and+hashirama+senju+shaking+hands+meme&tbm=isch&ved=2ahUKEwiKr7Wd2OTqAhWPfqwKHcoWAkwQ2-cCegQIABAA&oq=madara+uchiha+and+hashirama+senju+shaking+handsmeme&gs_lcp=CgNpbWcQA1CbJ1ioNWD4NmgAcAB4AIABZogBsgeSAQQxMS4xmAEAoAEBqgELZ3dzLXdpei1pbWfAAQE&sclient=img&ei=7jIaX4qANY_9sQXKrYjgBA&bih=810&biw=1715&hl=en"
+searchurl = "https://www.google.com/search?q=" + search_term.replace(" ", "+") + "&tbm=isch&ved=2ahUKEwiKr7Wd2OTqAhWPfqwKHcoWAkwQ2-cCegQIABAA&oq=madara+uchiha+and+hashirama+senju+shaking+handsmeme&gs_lcp=CgNpbWcQA1CbJ1ioNWD4NmgAcAB4AIABZogBsgeSAQQxMS4xmAEAoAEBqgELZ3dzLXdpei1pbWfAAQE&sclient=img&ei=7jIaX4qANY_9sQXKrYjgBA&bih=810&biw=1715&hl=en"
 
 dirs = 'pictures'
 maxcount = 10
