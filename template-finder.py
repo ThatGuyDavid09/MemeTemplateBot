@@ -13,7 +13,7 @@ while True:
     # Should take image, put it through api, and make a comment
 
     if bot_is_summoned:
-    # Get image url
-    resp = requests.get(url="The reddit posts url")
+        # Get image url
+        resp = requests.get(url="The reddit posts url")
 
-    url = resp.json['data']['children'][0]['data']['url']
+        url = resp.json['data']['children'][0]['data']['url']
