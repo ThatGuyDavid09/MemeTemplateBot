@@ -19,7 +19,7 @@ print("Searching directory " + directory + "...")
 
 # If the file has img_ in it, rename it
 for file in listdir(directory):
-    print(file)
+    # print(file)
     if "img_" in file:
-        os.rename(r'{file_path}\{old_name}'.format(file_path = directory, old_name = file),r'{file_path}\{new_name}'.format(file_path = directory, new_name = get_random_string(30)))
+        os.rename(r'{file_path}\{old_name}'.format(file_path = directory, old_name = file),r'{file_path}\{new_name}.jpg'.format(file_path = directory, new_name = get_random_string(30)))
         print("Renamed " + str(file))
