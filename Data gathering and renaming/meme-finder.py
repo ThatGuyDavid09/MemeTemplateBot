@@ -17,7 +17,7 @@ import time
 
 urllib3.disable_warnings(InsecureRequestWarning)
 
-search_term = "Test Test"
+search_term = "lego cop doctor meme"
 
 searchurl = "https://www.google.com/search?q=" + search_term.replace(" ", "+") + "&tbm=isch&ved=2ahUKEwiKr7Wd2OTqAhWPfqwKHcoWAkwQ2-cCegQIABAA&oq=madara+uchiha+and+hashirama+senju+shaking+handsmeme&gs_lcp=CgNpbWcQA1CbJ1ioNWD4NmgAcAB4AIABZogBsgeSAQQxMS4xmAEAoAEBqgELZ3dzLXdpei1pbWfAAQE&sclient=img&ei=7jIaX4qANY_9sQXKrYjgBA&bih=810&biw=1715&hl=en"
 
@@ -97,9 +97,9 @@ def download_google_staticimages():
 
     urls = []
     image_count = 1
-    print("There are " + len(images) = " images.")
+    print("There are " + str(len(images)) + " images.")
     for image in images:
-        print("Trying to get image " + image_count)
+        print("Trying to get image " + str(image_count))
         try:
             url = image['data-src']
             if not url.find('https://'):
@@ -115,10 +115,10 @@ def download_google_staticimages():
         image_count += 1
 
     count = 0
-    print("There are " + len(urls) + " available images.")
+    print("There are " + str(len(urls)) + " available images.")
     if urls:
         for url in urls:
-            print("Trying image #" + (count + 1))
+            print("Trying image #" + str((count + 1)))
             try:
                 res = requests.get(url, verify=False, stream=True)
                 rawdata = res.raw.read()
