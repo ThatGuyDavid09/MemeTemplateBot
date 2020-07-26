@@ -31,3 +31,15 @@ for folder_path in folder_paths:
         if num_files < min_files:
             print("Min files not met, renaming "+ folder_split[-1])
             os.rename(folder_look_path, directory + r"\{folder} {suffix}".format(folder = folder_split[-1], suffix = unuse_suffix))
+
+# Reassign folder paths
+folder_paths = [os.path.join(directory, o) for o in os.listdir(directory) if os.path.isdir(os.path.join(directory,o))]
+
+# If it is usable, append it to a list and copy to clipbaord
+for folder_path in folder_paths:
+    folder_split = folder_path.split("\\")
+    if "Do not use" not in folder_split[-1]:
+        usable_folders.append(folder_split[-1])
+
+pyperclip.copy(usable_folders)
+print("Usable folders copied to clipboard")
