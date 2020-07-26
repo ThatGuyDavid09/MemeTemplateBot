@@ -41,5 +41,5 @@ for folder_path in folder_paths:
     if "Do not use" not in folder_split[-1]:
         usable_folders.append(folder_split[-1])
 
-pyperclip.copy(usable_folders)
-print("Usable folders copied to clipboard")
+pyperclip.copy(str(usable_folders))
+print("Usable folders copied to clipboard!")
