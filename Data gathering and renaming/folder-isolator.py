@@ -38,7 +38,7 @@ folder_paths = [os.path.join(directory, o) for o in os.listdir(directory) if os.
 # If it is usable, append it to a list and copy to clipbaord
 for folder_path in folder_paths:
     folder_split = folder_path.split("\\")
-    if "Do not use" not in folder_split[-1]:
+    if unuse_suffix not in folder_split[-1]:
         usable_folders.append(folder_split[-1])
 
 pyperclip.copy(str(usable_folders))
