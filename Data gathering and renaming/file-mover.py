@@ -14,12 +14,12 @@ test_chance = 2
 # Get folders
 folder_paths = [os.path.join(source_directory, o) for o in os.listdir(source_directory) if os.path.isdir(os.path.join(source_directory,o))]
 
-# If it is usable, append it to a list
 for folder_path in folder_paths:
     folder_split = folder_path.split("\\")
     if unuse_suffix not in folder_split[-1]:
         search_directory = source_directory + r"\{}".format(folder_split[-1])
         for file in listdir(search_directory):
+            # Move the files
             if random.randint(1, 10) <= test_chance:
                 os.rename(search_directory + r"\{file}".format(file = file), test_directory + r"\{folder}\{file}".format(folder = folder_split[-1], file = file))
             else:
