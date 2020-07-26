@@ -19,7 +19,7 @@ unuse_suffix = "(Do not use)"
 for folder_path in folder_paths:
     folder_split = folder_path.split("\\")
     #If the folder isn't marked for unuse, look for it and see if it should. if it should, rename it
-    if "Do not use" not in folder_split[-1]:
+    if unuse_suffix not in folder_split[-1]:
         num_files = 0
         folder_look_path = directory + r"\{}".format(folder_split[-1])
 
