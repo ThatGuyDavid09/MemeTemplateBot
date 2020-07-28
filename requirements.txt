@@ -13,3 +13,6 @@ urllib
 urllib3
 datetime
 time
+tensorflow==2.3.0
+pandas
+numpy
