@@ -6,21 +6,6 @@ import os
 import numpy as np
 import pandas as pd
 
-classes_num = 0
-colnames = ["file_name", "classes"]
-data = pd.read_csv('train.csv', names=colnames)
-
-classes_lst = data.classes.tolist()
-
-last = ""
-for now in classes_lst:
-    if now != last:
-        classes_num += 1
-    last = now
-
-classes_num -= 1
-print(f"Classes calculated, there are {classes_num} classes")
-
 directory = r"C:\Users\vadim\Videos\Meme stuff\Meme dataset\Sets\Sorted memes"
 folder_paths = [os.path.join(directory, o) for o in os.listdir(directory) if os.path.isdir(os.path.join(directory,o))]
 
@@ -48,6 +33,10 @@ for folder_name in folders:
             os.remove(fpath)
 
 print("Deleted %d images" % num_skipped)
+
+classes_num = len(folders)
+
+print(f"Classes calculated, there are {classes_num} classes")
 
 ## Generate a `Dataset`
 
@@ -146,13 +135,14 @@ model = make_model(input_shape=image_size + (3,), num_classes=classes_num)
 epochs = 50
 
 callbacks = [
-    keras.callbacks.ModelCheckpoint(r"C:\Users\vadim\Videos\Meme stuff\Meme dataset\Sets\Model weights\{}".format("save_at_{epoch}.h5")),
+    keras.callbacks.ModelCheckpoint(filepath=r"C:\Users\vadim\Videos\Meme stuff\Meme dataset\Sets\Model weights\{}".format("save_at_{epoch}.h5"),
+                                    save_weights_only=True,
+                                    verbose=1),
 ]
 model.compile(
     optimizer=keras.optimizers.Adam(1e-3),
     loss="sparse_categorical_crossentropy",
-    metrics=["accuracy"],
-)
+    metrics=["accuracy"])
 
 input("Press enter to train the ai...")
 model.fit(
