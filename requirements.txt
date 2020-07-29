@@ -16,3 +16,4 @@ time
 tensorflow==2.3.0
 pandas
 numpy
+scikit-image
