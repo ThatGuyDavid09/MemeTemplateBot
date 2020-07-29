@@ -11,9 +11,9 @@ def get_random_string(length):
     result_str = ''.join(random.choice(letters) for i in range(length))
     return result_str
 
-meme_folder = "dj khaled suffering from success"
+meme_folder = "Z Not classified"
 
-directory = r"C:\Users\vadim\Videos\Meme stuff\Meme dataset\Sorted memes\{folder}".format(folder = meme_folder)
+directory = r"C:\Users\vadim\Videos\Meme stuff\Meme dataset\Sets\Sorted memes\Z Not classified"
 
 print("Searching directory " + directory + "...")
 
