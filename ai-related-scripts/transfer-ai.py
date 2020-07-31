@@ -2,13 +2,20 @@
 # Matches similar memes together and returns some useful info about them
 # This will allow for more obscure memes to be recognized
 
-# Hashing isn't going to work, the images can be too different
+"""
+To use:
+Put your 2 images you want to compare in the folder this is in
+Put their file names in the variables below
+"""
+
+template = "test1.jpg"
+meme = "test2.jpg"
 
 import cv2
 import numpy as np
 
-original = cv2.imread("test1.jpg")
-image_to_compare = cv2.imread("test4.jpg")
+original = cv2.imread(template)
+image_to_compare = cv2.imread(meme)
 
 
 # 1) Check if 2 images are equals

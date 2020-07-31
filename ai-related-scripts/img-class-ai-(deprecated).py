@@ -1,3 +1,7 @@
+"""
+This is an old ai, and we decided not to use it. Use transfer-ai.py instead.
+"""
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
