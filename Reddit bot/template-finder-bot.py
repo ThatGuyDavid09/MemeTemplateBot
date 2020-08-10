@@ -32,6 +32,9 @@ batch_size = 16
 # Its confidence and class number.
 # It also returns success codes:
 # Code 0: All ok, proceed with comment formatting, returned in list with format [0, photo_class, confidence (scale 0-100)]
+
+# TODO someone needs to redo the image classification
+
 # Code 1: It cannot identify the class of the photo, returned in list with format[1]
 # Code 2: The post is not a photo, returned in list with format [3]
 # Code 3: The provided comment is not a top level comment
