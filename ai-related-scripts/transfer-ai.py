@@ -3,7 +3,7 @@
 # This will allow for more obscure memes to be recognized
 
 import cv2
-import numpy as np
+# import numpy as np
 
 """
 To use:
@@ -14,26 +14,29 @@ Put their file names in the variables below
 template_use = "test1.jpg"
 meme_use = "test2.jpg"
 
+
 def main(template, meme):
+    """
+    Main function
+    :param template: File path
+    :param meme: File path
+    :return: None
+    """
     print(check_match(template, meme))
 
-def check_match(template, meme):
+
+def check_match(template, meme, debug=False):
+    """
+    This calculates how similar template is to meme
+    :param template: File path
+    :param meme: File path
+    :param debug: Debug
+    :return: [-1, Exception] if error, [0, confidence] if all ok
+    """
     original = cv2.imread(template)
     image_to_compare = cv2.imread(meme)
 
-
-    # 1) Check if 2 images are equals
-    if original.shape == image_to_compare.shape:
-        return "The images have same size and channels"
-        difference = cv2.subtract(original, image_to_compare)
-        b, g, r = cv2.split(difference)
-
-        if cv2.countNonZero(b) == 0 and cv2.countNonZero(g) == 0 and cv2.countNonZero(r) == 0:
-            return "The images are completely Equal"
-        else:
-            return "The images are NOT equal"
-
-    # 2) Check for similarities between the 2 images
+    # Check for similarities between the 2 images
     sift = cv2.xfeatures2d.SIFT_create()
     kp_1, desc_1 = sift.detectAndCompute(original, None)
     kp_2, desc_2 = sift.detectAndCompute(image_to_compare, None)
@@ -46,37 +49,34 @@ def check_match(template, meme):
 
     good_points = []
     for m, n in matches:
-        if m.distance < 0.6*n.distance:
+        if m.distance < 0.6 * n.distance:
             good_points.append(m)
 
     # Define how similar they are
-    number_keypoints = 0
     if len(kp_1) <= len(kp_2):
         number_keypoints = len(kp_1)
     else:
         number_keypoints = len(kp_2)
 
-        # TODO make these return and not print
-    print("Keypoints 1ST Image: " + str(len(kp_1)))
-    print("Keypoints 2ND Image: " + str(len(kp_2)))
-    print("GOOD Matches:", len(good_points))
-    # Multiplied by 1000 to exaggerate any differences
-    print("How good it's the match: ", len(good_points) / number_keypoints * 1000)
+    # TODO make these return and not print
+    if debug:
+        print("Keypoints 1ST Image: " + str(len(kp_1)))
+        print("Keypoints 2ND Image: " + str(len(kp_2)))
+        print("GOOD Matches:", len(good_points))
+        # Multiplied by 1000 to exaggerate any differences
+        print("How good it's the match: ", len(good_points) / number_keypoints * 1000)
 
-    # Following code would show the images, I don't care about that
-    """
-    result = cv2.drawMatches(original, kp_1, image_to_compare, kp_2, good_points, None)
+        # Show images
+        result = cv2.drawMatches(original, kp_1, image_to_compare, kp_2, good_points, None)
 
+        cv2.imshow("result", cv2.resize(result, None, fx=0.4, fy=0.4))
+        cv2.imwrite("feature_matching.jpg", result)
 
-    cv2.imshow("result", cv2.resize(result, None, fx=0.4, fy=0.4))
-    cv2.imwrite("feature_matching.jpg", result)
+        cv2.imshow("Original", cv2.resize(original, None, fx=0.4, fy=0.4))
+        cv2.imshow("Duplicate", cv2.resize(image_to_compare, None, fx=0.4, fy=0.4))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
-
-    cv2.imshow("Original", cv2.resize(original, None, fx=0.4, fy=0.4))
-    cv2.imshow("Duplicate", cv2.resize(image_to_compare, None, fx=0.4, fy=0.4))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-    """
 
 if __name__ == '__main__':
     main(template_use, meme_use)
@@ -89,33 +89,33 @@ import numpy as np
 import cv2
 
 def mse(imageA, imageB):
-	# the 'Mean Squared Error' between the two images is the
-	# sum of the squared difference between the two images;
-	# NOTE: the two images must have the same dimension
-	err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
-	err /= float(imageA.shape[0] * imageA.shape[1])
+    # the 'Mean Squared Error' between the two images is the
+    # sum of the squared difference between the two images;
+    # NOTE: the two images must have the same dimension
+    err = np.sum((imageA.astype("float") - imageB.astype("float")) ** 2)
+    err /= float(imageA.shape[0] * imageA.shape[1])
 
-	# return the MSE, the lower the error, the more "similar"
-	# the two images are
-	return err
+    # return the MSE, the lower the error, the more "similar"
+    # the two images are
+    return err
 def compare_images(imageA, imageB, title):
-	# compute the mean squared error and structural similarity
-	# index for the images
-	m = mse(imageA, imageB)
-	s = ssim(imageA, imageB)
-	# setup the figure
-	fig = plt.figure(title)
-	plt.suptitle("MSE: %.2f, SSIM: %.2f" % (m, s))
-	# show first image
-	ax = fig.add_subplot(1, 2, 1)
-	plt.imshow(imageA, cmap = plt.cm.gray)
-	plt.axis("off")
-	# show the second image
-	ax = fig.add_subplot(1, 2, 2)
-	plt.imshow(imageB, cmap = plt.cm.gray)
-	plt.axis("off")
-	# show the images
-	plt.show()
+    # compute the mean squared error and structural similarity
+    # index for the images
+    m = mse(imageA, imageB)
+    s = ssim(imageA, imageB)
+    # setup the figure
+    fig = plt.figure(title)
+    plt.suptitle("MSE: %.2f, SSIM: %.2f" % (m, s))
+    # show first image
+    ax = fig.add_subplot(1, 2, 1)
+    plt.imshow(imageA, cmap = plt.cm.gray)
+    plt.axis("off")
+    # show the second image
+    ax = fig.add_subplot(1, 2, 2)
+    plt.imshow(imageB, cmap = plt.cm.gray)
+    plt.axis("off")
+    # show the images
+    plt.show()
 
 meme = cv2.imread("test1.jpg")
 template = cv2.imread("test2.jpg")
@@ -132,11 +132,11 @@ fig = plt.figure("Images")
 images = ("Meme", meme), ("Template", template)
 # loop over the images
 for (i, (name, image)) in enumerate(images):
-	# show the image
-	ax = fig.add_subplot(1, 2, i + 1)
-	ax.set_title(name)
-	plt.imshow(image, cmap = plt.cm.gray)
-	plt.axis("off")
+    # show the image
+    ax = fig.add_subplot(1, 2, i + 1)
+    ax.set_title(name)
+    plt.imshow(image, cmap = plt.cm.gray)
+    plt.axis("off")
 # show the figure
 plt.show()
 # compare the images

@@ -3,6 +3,7 @@ pathlib
 selenium
 bs4
 argparse
+opencv-python
 requests
 datetime
 tensorflow==2.3.0
