@@ -3,7 +3,6 @@
 # This will allow for more obscure memes to be recognized
 
 import cv2
-import numpy as np
 
 """
 To use:

@@ -1,8 +1,15 @@
 <component name="ProjectDictionaryState">
   <dictionary name="admin">
     <words>
+      <w>astype</w>
+      <w>cmap</w>
       <w>flann</w>
+      <w>imread</w>
+      <w>imshow</w>
       <w>keypoints</w>
+      <w>pyplot</w>
+      <w>skimage</w>
+      <w>suptitle</w>
     </words>
   </dictionary>
 </component>
