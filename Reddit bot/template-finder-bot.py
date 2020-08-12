@@ -1,14 +1,17 @@
 # TODO This bot needs to be recoded to use transfer-ai
+# This is a reddit bot that, when it is called by commenting its username,
+# uses ai to figure out what template the meme above it is
 
 import csv
 import os
 import shutil
 import time
 
-# This is a reddit bot that, when it is called by commenting its username,
-# uses ai to figure out what template the meme above it is
+
 import praw
 import requests
+
+from image_ai import check_match
 
 # authenticate bot
 reddit = praw.Reddit(client_id="XXXXXXXXXX",
