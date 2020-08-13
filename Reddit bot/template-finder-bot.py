@@ -38,13 +38,16 @@ def get_class(comment_look):
     :param comment_look: praw Comment
     :return: See above
     """
+    # This try is to catch any and all errors that may occur
     try:
+        # Set variables
         bad_gateway = True
         directory = r"C:\Users\vadim\Videos\Meme stuff\Meme dataset\Code\Reddit bot\Templates"
         image_formats = (".png", ".jpeg", ".jpg")
 
         api_url = "https://api.reddit.com/api/info/?id="
 
+        # Top level comment check
         if comment_look.parent_id[:3] == "t3_":
             id_to_get = comment_look.parent_id
         else:
@@ -58,6 +61,7 @@ def get_class(comment_look):
             headers = {
                 "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"}
             f = requests.get(url_to_send, headers=headers)
+            # This is if reddit is dumb
             if f.status_code >= 500:
                 print(
                     "\033[0;33;40m [REDDIT DUMB] Reddit's servers are being stupid again. There is no exception, just Reddit being Reddit.")
@@ -65,8 +69,10 @@ def get_class(comment_look):
                 time.sleep(5)
                 bad_gateway = True
                 continue
+            # If there is a normal http error
             elif f.status_code != 200 and f.status_code < 500:
                 return [4, f.status_code, f.json()["message"]]
+            # If everything is ok
             else:
                 parsed_json = f.json()
                 # print(parsed_json)
@@ -99,28 +105,26 @@ def get_class(comment_look):
                     return [2]
                 bad_gateway = False
 
-                # This just waits until the photo can process
-                time.sleep(1)
                 # Loop through every template until a greater than 50 percent confidence
                 for filename in os.listdir(directory):
                     if not file.endswith(".csv"):
 
                         template = os.path.join(directory, filename)
                         confidence = ai.check_match(template, meme)
-
+                        # If there isn't an error
                         if confidence[0] == 0 and confidence[1] >= 50.0:
                             with open(r"Templates\templates.csv") as csv_file:
                                 csv_reader = csv.reader(csv_file, delimeter=",")
 
                                 for row in csv_reader:
-                                    # noinspection PyTypeChecker
+                                    # Find the right things to return
                                     if row["file_name"] == template and row["extra_info"] is not None:
                                         return [0, confidence[1], row["class_name"], row["imgur_link"]]
                                     else:
                                         return [0, confidence[1], row["class_name"], row["imgur_link"],
                                                 row["extra_info"]]
                         else:
-                            # Error
+                            # If there is an error
                             print("[ERROR] " + confidence[1])
                             return [5, confidence[1]]
 
