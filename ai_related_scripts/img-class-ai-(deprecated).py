@@ -1,5 +1,5 @@
 """
-This is an old ai, and we decided not to use it. Use transfer-ai.py instead.
+This is an old ai, and we decided not to use it. Use image_ai.py instead.
 """
 
 import tensorflow as tf

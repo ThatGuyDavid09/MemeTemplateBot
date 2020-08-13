@@ -57,7 +57,6 @@ def check_match(template, meme, debug=False):
         else:
             number_keypoints = len(kp_2)
 
-        # TODO make these return and not print
         if debug:
             print("Keypoints 1ST Image: " + str(len(kp_1)))
             print("Keypoints 2ND Image: " + str(len(kp_2)))
