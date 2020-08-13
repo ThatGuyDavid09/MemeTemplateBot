@@ -76,10 +76,14 @@ def get_class(comment_look):
             print(img_url)
 
             # If it is an image, save it to the disk
-            #                                          This check here is if the extension is 4 letters long, like jpeg
-            if img_url[-4:] in image_formats or img_url[-5:] in image_formats:
+            if img_url[-4:] in image_formats:
                 img_response = requests.get(img_url, stream=True)
-                with open("img.png", "wb") as out_file:
+                with open(f"img.{img_url[-4:]}", "wb") as out_file:
+                    shutil.copyfileobj(img_response.raw, out_file)
+                del img_url
+            elif img_url[-5:] in image_formats:
+                img_response = requests.get(img_url, stream=True)
+                with open(f"img.{img_url[-5:]}", "wb") as out_file:
                     shutil.copyfileobj(img_response.raw, out_file)
                 del img_url
             else:
