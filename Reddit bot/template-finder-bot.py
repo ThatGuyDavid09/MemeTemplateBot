@@ -23,7 +23,6 @@ image_class = "_2_tDEnGMLxpM6uOa2kaDB3"
 
 reddit.read_only = False
 
-
 # This function takes the post from the comment it is passed, figures out if it's a photo or not, if it is, it runs the ai on it and returns
 # Its confidence and class number.
 # It also returns success codes:
