@@ -33,6 +33,7 @@ reddit.read_only = False
 # Code 4: HTTP error, returned in list with format [4, status_code, message]
 # Code 5, General error, returned with format [5, Exception]
 
+
 def get_class(comment_look):
     """
     Gets the class of a comment
