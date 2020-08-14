@@ -142,6 +142,7 @@ def get_class(comment_look, debug=False):
         return [5, e]
 
 
+# TODO make this have the subreddit id, not the name of the subreddit
 approved_subs = ["TemplateFinderBott"]
 replied_to = []
 # Initialize replied_to from a csv file
@@ -160,7 +161,7 @@ for line in lines:
 while True:
     for comment in reddit.inbox.mentions(limit=10):
         # If its name is commented and it hasn't replied to the comment, reply to it and append the list to replied_to and a csv file
-        if comment.id not in replied_to and comment.subreddit in approved_subs:
+        if comment.id not in replied_to and comment.subreddit_id in approved_subs:
             replied_to.append(comment.id)
 
             with open("replied_to.csv", "a+", newline="") as file:
