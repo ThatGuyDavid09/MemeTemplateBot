@@ -34,10 +34,11 @@ reddit.read_only = False
 # Code 5, General error, returned with format [5, Exception]
 
 
-def get_class(comment_look):
+def get_class(comment_look, debug=False):
     """
     Gets the class of a comment
     :param comment_look: praw Comment
+    :param debug: Boolean, True for debug output
     :return: See above
     """
     # This try is to catch any and all errors that may occur
@@ -77,12 +78,14 @@ def get_class(comment_look):
             # If everything is ok
             else:
                 parsed_json = f.json()
-                # print(parsed_json)
+                if debug:
+                    print("[DEBUG] " + parsed_json)
 
                 # Figure out if it is an image post by looking at its headers
                 img_url = parsed_json["data"]["children"][0]["data"]["url"]
 
-                # print(img_url)
+                if debug:
+                    print("[DEBUG] " + img_url)
 
                 # If it is an image, save it to the disk
                 meme = ""
@@ -112,7 +115,7 @@ def get_class(comment_look):
                     if not file.endswith(".csv"):
 
                         template = os.path.join(directory, filename)
-                        confidence = ai.check_match(template, meme)
+                        confidence = ai.check_match(template, meme, debug)
                         # If there isn't an error
                         if confidence[0] == 0 and confidence[1] >= 50.0:
                             with open(r"Templates\templates.csv") as csv_file:

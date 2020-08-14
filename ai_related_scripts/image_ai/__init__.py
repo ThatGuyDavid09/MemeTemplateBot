@@ -58,11 +58,11 @@ def check_match(template, meme, debug=False):
             number_keypoints = len(kp_2)
 
         if debug:
-            print("Keypoints 1ST Image: " + str(len(kp_1)))
-            print("Keypoints 2ND Image: " + str(len(kp_2)))
-            print("GOOD Matches:", len(good_points))
+            print("[DEBUG] Keypoints 1ST Image: " + str(len(kp_1)))
+            print("[DEBUG] Keypoints 2ND Image: " + str(len(kp_2)))
+            print("[DEBUG] GOOD Matches:", len(good_points))
             # Multiplied by 1000 to exaggerate any differences
-            print("How good it's the match: ", len(good_points) / number_keypoints * 1000)
+            print("[DEBUG] How good it's the match: ", len(good_points) / number_keypoints * 1000)
 
             # Show images
             result = cv2.drawMatches(original, kp_1, image_to_compare, kp_2, good_points, None)
