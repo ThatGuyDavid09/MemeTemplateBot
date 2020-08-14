@@ -1,5 +1,5 @@
 # TODO implement method for approving a subreddit, by being asked to be moderator, also make config file
-# TODO vefore doing the thing above, just make a config file with configparser package
+# TODO before doing the thing above, just make a config file with configparser package
 # This is a reddit bot that, when it is called by commenting its username,
 # uses ai to figure out what template the meme above it is
 
