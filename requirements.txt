@@ -16,3 +16,4 @@ urllib3~=1.25.10
 beautifulsoup4~=4.9.1
 pyperclip~=1.8.0
 urlvalidator~=0.1
+prawcore~=1.5.0
