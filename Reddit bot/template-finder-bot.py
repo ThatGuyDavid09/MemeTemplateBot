@@ -16,6 +16,7 @@ import ai_related_scripts.image_ai as ai
 # Global config variables
 do_debug = False
 
+
 def load_config(config_file_name):
     """
     Loads config and sets variables
@@ -47,6 +48,7 @@ reddit = praw.Reddit(client_id="XXXXXXXXXX",
 image_class = "_2_tDEnGMLxpM6uOa2kaDB3"
 
 reddit.read_only = False
+
 
 # This function takes the post from the comment it is passed, figures out if it's a photo or not, if it is, it runs the ai on it and returns
 # Its confidence and class number.
@@ -176,69 +178,79 @@ with open("replied_to.csv", "r") as file:
 for line in lines:
     replied_to.append(line.replace("\n", ""))
 
+
 # print(lines)
 # print(replied_to)
 
 # Loop through mentions
 # print(reddit.inbox.mentions(limit=10))
 
-while True:
-    for comment in reddit.inbox.mentions(limit=10):
-        # If its name is commented and it hasn't replied to the comment, reply to it and append the list to replied_to and a csv file
-        if comment.id not in replied_to and comment.subreddit_id in approved_subs:
-            replied_to.append(comment.id)
+# Main function
+def main():
+    load_config("config.json")
 
-            with open("replied_to.csv", "a+", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow([comment.id])
+    while True:
+        for comment in reddit.inbox.mentions(limit=10):
+            # If its name is commented and it hasn't replied to the comment, reply to it and append the list to replied_to and a csv file
+            if comment.id not in replied_to and comment.subreddit_id in approved_subs:
+                replied_to.append(comment.id)
 
-            reply = ""
-            if do_debug:
-                match_result = get_class(comment, True)
-            else:
-                match_result = get_class(comment)
+                with open("replied_to.csv", "a+", newline="") as csv_file:
+                    writer = csv.writer(csv_file)
+                    writer.writerow([comment.id])
 
-            # Set reply variable
-            # If the function says to proceed
-            if match_result[0] == 0:
-                # If there isn't any extra info
-                if len(match_result) == 3:
-                    reply = f"""
-                            I am {round(match_result[1])}% sure that this uses the {match_result[2]} template.
-                            It can be found [here]({match_result[2]}).
-                            [False positive?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=FALSE POSITIVE&message={{/"post_id/": /"{comment.parent_id}/", /"correct_meme/": /"PUT THE LINK TO THE CORRECT MEME HERE/"}})
-                            """
-                # If there is
+                reply = ""
+                if do_debug:
+                    match_result = get_class(comment, True)
                 else:
+                    match_result = get_class(comment)
+
+                # Set reply variable
+                # If the function says to proceed
+                if match_result[0] == 0:
+                    # If there isn't any extra info
+                    if len(match_result) == 3:
+                        reply = f"""
+                                I am {"nearly 100" if match_result[1] > 100.0 else round(match_result[1])}% sure that this uses the {match_result[2]} template.
+                                It can be found [here]({match_result[2]}).
+                                [False positive?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=FALSE POSITIVE&message={{/"post_id/": /"{comment.parent_id}/", /"correct_meme/": /"PUT THE LINK TO THE CORRECT MEME HERE/"}})
+                                """
+                    # If there is
+                    else:
+                        reply = f"""
+                                I am {"nearly 100" if match_result[1] > 100.0 else round(match_result[1])}% sure that this uses the {match_result[2]} template.
+                                It can be found [here]({match_result[2]}).
+                                Some extra info: {match_result[3]}
+                                [False positive?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=FALSE POSITIVE&message={{/"post_id/": /"{comment.parent_id}/", /"correct_meme/": /"PUT THE LINK TO THE CORRECT MEME HERE/"}})
+                                """
+                # If the class cannot be identified
+                elif match_result[0] == 1:
                     reply = f"""
-                            I am {round(match_result[1])}% sure that this uses the {match_result[2]} template.
-                            It can be found [here]({match_result[2]}).
-                            Some extra info: {match_result[3]}
-                            [False positive?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=FALSE POSITIVE&message={{/"post_id/": /"{comment.parent_id}/", /"correct_meme/": /"PUT THE LINK TO THE CORRECT MEME HERE/"}})
+                            Sadly, I don't know what template this meme is using.
+                            [Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/"}})
                             """
-            # If the class cannot be identified
-            elif match_result[0] == 1:
-                reply = f"""
-                        Sadly, I don't know what template this meme is using.
-                        [Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/"}})
-                        """
-            # If it's not a photo
-            elif match_result[0] == 2:
-                print(f"\033[0;33;40m [WARNING] Not photo, {comment.parent_id}")
-                reply = "That's not a photo!"
-            # If it isn't a top level comment
-            elif match_result[0] == 3:
-                print(f"\033[0;33;40m [WARNING] Not top level comment, {comment.parent_id}")
-            # If there is an http error
-            elif match_result[0] == 4:
-                print(f"\033[0;31;40m [ERROR] HTTP error, status code: {match_result[1]}, message: {match_result[2]}")
-            # If there is a general error
-            else:
-                print(f"\033[0;31;40m [ERROR] General error, {match_result[1]}")
+                # If it's not a photo
+                elif match_result[0] == 2:
+                    print(f"\033[0;33;40m [WARNING] Not photo, {comment.parent_id}")
+                    reply = "That's not a photo!"
+                # If it isn't a top level comment
+                elif match_result[0] == 3:
+                    print(f"\033[0;33;40m [WARNING] Not top level comment, {comment.parent_id}")
+                # If there is an http error
+                elif match_result[0] == 4:
+                    print(
+                        f"\033[0;31;40m [ERROR] HTTP error, status code: {match_result[1]}, message: {match_result[2]}")
+                # If there is a general error
+                else:
+                    print(f"\033[0;31;40m [ERROR] General error, {match_result[1]}")
 
-            # Replay to the comment and print some debug
-            comment.reply(reply)
-            print(f"\033[0;32;40m [REPLY] Replied to {comment.id} in {comment.subreddit}")
-            print(f"[REPLY] Replied: {reply}")
+                # Replay to the comment and print some debug
+                comment.reply(reply)
+                print(f"\033[0;32;40m [REPLY] Replied to {comment.id} in {comment.subreddit}")
+                print(f"[REPLY] Replied: {reply}")
 
-    # time.sleep(10)
+        # time.sleep(10)
+
+
+if __name__ == '__main__':
+    main()
