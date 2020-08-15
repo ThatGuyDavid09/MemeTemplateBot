@@ -16,21 +16,27 @@ import ai_related_scripts.image_ai as ai
 # Global config variables
 do_debug = False
 
-# Load config file
-try:
-    with open("config.json") as config_file:
-        config_data = json.load(config_file)
-    # Set config variables
-    do_debug = config_data["debug"]
-except Exception:
-    config_dict = {"debug": False}
+def load_config(config_file_name):
+    """
+    Loads config and sets variables
+    :param config_file_name: String, name of config file
+    """
+    # Load config file
+    try:
+        with open(config_file_name) as config_file:
+            config_data = json.load(config_file)
+        # Set config variables
+        do_debug = config_data["debug"]
+    except KeyError:
+        config_dict = {"debug": False}
 
-    with open("config.json", "w") as config_file:
-        json.dump(config_dict, config_file)
+        with open(config_file_name, "w") as config_file:
+            json.dump(config_dict, config_file)
 
-    with open("config.json") as config_file:
-        config_data = json.load(config_file)
-    do_debug = config_data["debug"]
+        with open("config.json") as config_file:
+            config_data = json.load(config_file)
+        do_debug = config_data["debug"]
+
 
 # authenticate bot
 reddit = praw.Reddit(client_id="XXXXXXXXXX",
