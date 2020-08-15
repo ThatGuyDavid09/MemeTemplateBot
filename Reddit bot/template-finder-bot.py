@@ -3,15 +3,20 @@
 # uses ai to figure out what template the meme above it is
 
 import csv
+import json
 import os
 import shutil
 import time
+from json.decoder import JSONDecodeError
 
 import praw
 import requests
-import json
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
+from praw.models import Message
+from prawcore import ResponseException
 
-import ai_related_scripts.image_ai as ai
+import ai_related_scripts.image_ai
 
 # Global config variables
 do_debug = False
@@ -142,7 +147,7 @@ def get_class(comment_look, debug=False):
                     if not file.endswith(".csv"):
 
                         template = os.path.join(directory, filename)
-                        confidence = ai.check_match(template, meme, debug)
+                        confidence = ai_related_scripts.image_ai.check_match(template, meme, debug)
                         # If there isn't an error
                         if confidence[0] == 0 and confidence[1] >= 50.0:
                             with open(r"Templates\templates.csv") as csv_file:
@@ -187,9 +192,24 @@ for line in lines:
 
 # Main function
 def main():
+    counter = 0
     load_config("config.json")
 
+    template_suggestions = []
+    incorrect_templates = []
+
     while True:
+        # Authorization check, it's crap I know
+        try:
+            for comment in reddit.inbox.mentions(limit=1):
+                test = 0
+        except ResponseException:
+            print(
+                f"\033[0;31;40m [FATAL ERROR] Reddit object likely not authenticated, received 401 error from authentication test")
+            break
+
+        counter += 1
+
         for comment in reddit.inbox.mentions(limit=10):
             # If its name is commented and it hasn't replied to the comment, reply to it and append the list to replied_to and a csv file
             if comment.id not in replied_to and comment.subreddit_id in approved_subs:
@@ -213,7 +233,7 @@ def main():
                         reply = f"""
                                 I am {"nearly 100" if match_result[1] > 100.0 else round(match_result[1])}% sure that this uses the {match_result[2]} template.
                                 It can be found [here]({match_result[2]}).
-                                [False positive?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=FALSE POSITIVE&message={{/"post_id/": /"{comment.parent_id}/", /"correct_meme/": /"PUT THE LINK TO THE CORRECT MEME HERE/"}})
+                                [Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}})
                                 """
                     # If there is
                     else:
@@ -221,13 +241,13 @@ def main():
                                 I am {"nearly 100" if match_result[1] > 100.0 else round(match_result[1])}% sure that this uses the {match_result[2]} template.
                                 It can be found [here]({match_result[2]}).
                                 Some extra info: {match_result[3]}
-                                [False positive?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=FALSE POSITIVE&message={{/"post_id/": /"{comment.parent_id}/", /"correct_meme/": /"PUT THE LINK TO THE CORRECT MEME HERE/"}})
+                                [Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}})
                                 """
                 # If the class cannot be identified
                 elif match_result[0] == 1:
                     reply = f"""
                             Sadly, I don't know what template this meme is using.
-                            [Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/"}})
+                            [Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/", /"template/": /"PUT LINK TO TEMPLATE HERE/"}})
                             """
                 # If it's not a photo
                 elif match_result[0] == 2:
@@ -250,6 +270,47 @@ def main():
                 print(f"[REPLY] Replied: {reply}")
 
         # time.sleep(10)
+        # Do rarely
+        counter = 0
+        if counter >= 1000:
+
+            for message in reddit.inbox.unread(limit=None):
+                if isinstance(message, Message):
+                    # Check if it is json
+                    try:
+                        message_json = json.loads(message)
+
+                        validate = URLValidator()
+                        # See if it is an incorrect template thing
+                        try:
+                            temp = message_json["correct_template"]
+                            validate(temp)
+                            incorrect_templates.append(message_json)
+                        except KeyError:
+
+                            # See if it is a template suggestion
+                            try:
+                                temp = message_json["template"]
+                                validate(temp)
+                                template_suggestions.append(message_json)
+                            # Reply if bad formatting
+                            except KeyError:
+                                message.reply(
+                                    "We did not understand the format of your request. Please check your formatting and try again.")
+
+                            # Reply if bad urls
+                            except ValidationError:
+                                message.reply("That does not seem to have a valid url!")
+                        except ValidationError:
+                            message.reply("That does not seem to have a valid url!")
+
+                    # Reply if bad formatting
+                    except JSONDecodeError:
+                        message.reply(
+                            "We did not understand the format of your request. Please check your formatting and try again.")
+                    finally:
+                        message.mark_read()
+                        counter = 0
 
 
 if __name__ == '__main__':
