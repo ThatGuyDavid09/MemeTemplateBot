@@ -1,5 +1,4 @@
-# TODO implement method for approving a subreddit, by being asked to be moderator, also make config file
-# TODO before doing the thing above, just make a config file with configparser package
+# TODO implement method for approving a subreddit, by being asked to be moderator, probs later
 # This is a reddit bot that, when it is called by commenting its username,
 # uses ai to figure out what template the meme above it is
 
@@ -10,8 +9,28 @@ import time
 
 import praw
 import requests
+import json
 
 import ai_related_scripts.image_ai as ai
+
+# Global config variables
+do_debug = False
+
+# Load config file
+try:
+    with open("config.json") as config_file:
+        config_data = json.load(config_file)
+    # Set config variables
+    do_debug = config_data["debug"]
+except Exception:
+    config_dict = {"debug": False}
+
+    with open("config.json", "w") as config_file:
+        json.dump(config_dict, config_file)
+
+    with open("config.json") as config_file:
+        config_data = json.load(config_file)
+    do_debug = config_data["debug"]
 
 # authenticate bot
 reddit = praw.Reddit(client_id="XXXXXXXXXX",
@@ -142,8 +161,7 @@ def get_class(comment_look, debug=False):
         return [5, e]
 
 
-# TODO make this have the subreddit id, not the name of the subreddit
-approved_subs = ["TemplateFinderBott"]
+approved_subs = ["2wnr3g"]
 replied_to = []
 # Initialize replied_to from a csv file
 with open("replied_to.csv", "r") as file:
@@ -169,9 +187,12 @@ while True:
                 writer.writerow([comment.id])
 
             reply = ""
-            match_result = get_class(comment)
-            # Set reply variable
+            if do_debug:
+                match_result = get_class(comment, True)
+            else:
+                match_result = get_class(comment)
 
+            # Set reply variable
             # If the function says to proceed
             if match_result[0] == 0:
                 # If there isn't any extra info
