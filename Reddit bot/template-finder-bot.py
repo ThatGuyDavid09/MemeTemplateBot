@@ -202,7 +202,7 @@ def main():
         # Authorization check, it's crap I know
         try:
             for comment in reddit.inbox.mentions(limit=1):
-                test = 0
+                pass
         except ResponseException:
             print(
                 f"\033[0;31;40m [FATAL ERROR] Reddit object likely not authenticated, received 401 error from authentication test")
@@ -272,45 +272,61 @@ def main():
         # time.sleep(10)
         # Do rarely
         counter = 0
-        if counter >= 1000:
+        if counter >= 100:
 
             for message in reddit.inbox.unread(limit=None):
                 if isinstance(message, Message):
-                    # Check if it is json
-                    try:
-                        message_json = json.loads(message)
+                    validate = URLValidator()
 
-                        validate = URLValidator()
-                        # See if it is an incorrect template thing
+                    # Check type of message
+                    if message.subject == "INCORRECT":
                         try:
+                            # Validate Message
+                            message_json = json.loads(message.body)
                             temp = message_json["correct_template"]
+
                             validate(temp)
+
+                            # Append to correct list
                             incorrect_templates.append(message_json)
-                        except KeyError:
-
-                            # See if it is a template suggestion
-                            try:
-                                temp = message_json["template"]
-                                validate(temp)
-                                template_suggestions.append(message_json)
-                            # Reply if bad formatting
-                            except KeyError:
-                                message.reply(
-                                    "We did not understand the format of your request. Please check your formatting and try again.")
-
-                            # Reply if bad urls
-                            except ValidationError:
-                                message.reply("That does not seem to have a valid url!")
+                        # Check if Json
+                        except JSONDecodeError:
+                            message.reply("We did not understand the format of your request. Please check your formatting and try again.")
+                        # Check if good url
                         except ValidationError:
                             message.reply("That does not seem to have a valid url!")
+                        # Check if correct formatting
+                        except KeyError:
+                            message.reply("We did not understand the format of your request. Please check your formatting and try again.")
+                        finally:
+                            message.mark_read()
 
-                    # Reply if bad formatting
-                    except JSONDecodeError:
-                        message.reply(
-                            "We did not understand the format of your request. Please check your formatting and try again.")
-                    finally:
-                        message.mark_read()
-                        counter = 0
+                    if message.subject == "REQUEST":
+                        try:
+                            # Validate Message
+                            message_json = json.loads(message.body)
+                            temp = message_json["template"]
+
+                            validate(temp)
+
+                            # Append to correct list
+                            template_suggestions.append(message_json)
+                        # Check if Json
+                        except JSONDecodeError:
+                            message.reply(
+                                "We did not understand the format of your request. Please check your formatting and try again.")
+                        # Check if good url
+                        except ValidationError:
+                            message.reply("That does not seem to have a valid url!")
+                        # Check if correct formatting
+                        except KeyError:
+                            message.reply(
+                                "We did not understand the format of your request. Please check your formatting and try again.")
+                        finally:
+                            message.mark_read()
+            counter = 0
+
+        counter += 1
 
 
 if __name__ == '__main__':
