@@ -274,8 +274,10 @@ def main():
         counter = 0
         if counter >= 100:
 
+            approved_subjects = ["INCORRECT", "REQUEST"]
+
             for message in reddit.inbox.unread(limit=None):
-                if isinstance(message, Message):
+                if isinstance(message, Message) and message.was_comment is False and message.subject in approved_subjects:
                     validate = URLValidator()
 
                     # Check type of message
