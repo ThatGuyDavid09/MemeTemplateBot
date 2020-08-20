@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import time
+from datetime import date
 from json.decoder import JSONDecodeError
 
 import praw
@@ -17,6 +18,10 @@ from praw.models import Message
 from prawcore import ResponseException
 
 import ai_related_scripts.image_ai
+
+# Get today's day
+todays_day = date.today().strftime("%d/%m/%Y")[:2]
+# print(todays_day)
 
 # Global config variables
 do_debug = False
@@ -192,6 +197,7 @@ for line in lines:
 
 # Main function
 def main():
+    global todays_day
     counter = 0
     load_config("config.json")
 
@@ -273,9 +279,8 @@ def main():
                 print(f"[REPLY] Replied: {reply}")
 
         # time.sleep(10)
-        # Do rarely
-        counter = 0
-        if counter >= 100:
+        # Do daily
+        if todays_day != date.today().strftime("%d/%m/%Y")[:2]:
 
             approved_subjects = ["INCORRECT", "REQUEST"]
 
@@ -328,9 +333,7 @@ def main():
                             message.reply("We did not understand the format of your request. Please check your formatting and try again.")
                         finally:
                             message.mark_read()
-            counter = 0
-
-        counter += 1
+            todays_day = date.today().strftime("%d/%m/%Y")[:2]
 
 
 if __name__ == '__main__':
