@@ -10,6 +10,11 @@ import time
 from datetime import date
 from json.decoder import JSONDecodeError
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+
 import praw
 import requests
 from django.core.exceptions import ValidationError
@@ -25,7 +30,8 @@ todays_day = date.today().strftime("%d/%m/%Y")[:2]
 
 # Global config variables
 do_debug = False
-
+send_email = True
+email_address = "TBD"
 
 def load_config(config_file_name):
     """
@@ -38,8 +44,10 @@ def load_config(config_file_name):
             config_data = json.load(config_file)
         # Set config variables
         do_debug = config_data["debug"]
+        send_email = config_data["send_email"]
+        email_address = config_data["email_address"]
     except KeyError:
-        config_dict = {"debug": False}
+        config_dict = {"debug": False, "send_email": True, "email_address": "TBD"}
 
         with open(config_file_name, "w") as config_file:
             json.dump(config_dict, config_file)
@@ -47,7 +55,12 @@ def load_config(config_file_name):
         with open("config.json") as config_file:
             config_data = json.load(config_file)
         do_debug = config_data["debug"]
+        send_email = config_data["send_email"]
+        email_address = config_data["email_address"]
 
+# Authenticate email
+s = smtplib.SMTP(host="smtp.gmail.com", port=587)
+s.login("user", "password")
 
 # authenticate bot
 reddit = praw.Reddit(client_id="XXXXXXXXXX",
@@ -334,6 +347,40 @@ def main():
                         finally:
                             message.mark_read()
             todays_day = date.today().strftime("%d/%m/%Y")[:2]
+
+            # Email the stuff to me
+            if template_suggestions is not None and incorrect_templates is not None and send_email:
+
+                msg = MIMEMultipart()
+                msg["From"] = email_address
+                msg["To"] = email_address
+                msg["Subject"] = "Stuff from reddit bot"
+
+                # Message of email
+                if template_suggestions is None:
+                    message = f"""HEY! These are today's template suggestions:
+                                {template_suggestions}
+
+                                -The reddit bot"""
+                elif incorrect_templates is None:
+                    message = f"""HEY! These are today's incorrect templates:
+                                {incorrect_templates}
+
+                                -The reddit bot"""
+                else:
+                    message = f"""HEY! These are today's incorrect templates and template suggestions:
+                                                    Incorrect templates: {incorrect_templates}
+                                                    Template suggestions: {template_suggestions}
+
+                                                    -The reddit bot"""
+                # Send email
+                msg.attach(MIMEText(message, "plain"))
+
+                s.send_message(msg)
+                del msg
+                # Clear the 2 lists
+                template_suggestions.clear()
+                incorrect_templates.clear()
 
 
 if __name__ == '__main__':
