@@ -234,7 +234,7 @@ def main():
                                 I am {"nearly 100" if match_result[1] > 100.0 else round(match_result[1])}% sure that this uses the {match_result[2]} template.
                                 It can be found [here]({match_result[2]}).
 
-                                [^Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}}) [^Github](
+                                [^Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}}) [^Github](https://github.com/ThatGuyDavid09/MemeTemplateBot/)
                                 """
                     # If there is
                     else:
@@ -243,14 +243,14 @@ def main():
                                 It can be found [here]({match_result[2]}).
                                 Some extra info: {match_result[3]}
 
-                                [^Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}})
+                                [^Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}}) [^Github](https://github.com/ThatGuyDavid09/MemeTemplateBot/)
                                 """
                 # If the class cannot be identified
                 elif match_result[0] == 1:
                     reply = f"""
                             Sadly, I don't know what template this meme is using.
 
-                            [^Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/", /"template_link/": /"PUT LINK TO TEMPLATE HERE/", /"template_name/": /"PUT NAME OF TEMPLATE HERE/", /"extra_info/": /"PUT EXTRA INFO HERE, IF THERE IS ANY}})
+                            [^Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/", /"template_link/": /"PUT LINK TO TEMPLATE HERE/", /"template_name/": /"PUT NAME OF TEMPLATE HERE/", /"extra_info/": /"PUT EXTRA INFO HERE, IF THERE IS ANY}}) [^Github](https://github.com/ThatGuyDavid09/MemeTemplateBot/)
                             """
                 # If it's not a photo
                 elif match_result[0] == 2:
