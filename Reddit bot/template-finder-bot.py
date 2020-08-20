@@ -233,7 +233,8 @@ def main():
                         reply = f"""
                                 I am {"nearly 100" if match_result[1] > 100.0 else round(match_result[1])}% sure that this uses the {match_result[2]} template.
                                 It can be found [here]({match_result[2]}).
-                                [Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}})
+
+                                [^Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}}) [^Github](
                                 """
                     # If there is
                     else:
@@ -241,13 +242,15 @@ def main():
                                 I am {"nearly 100" if match_result[1] > 100.0 else round(match_result[1])}% sure that this uses the {match_result[2]} template.
                                 It can be found [here]({match_result[2]}).
                                 Some extra info: {match_result[3]}
-                                [Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}})
+
+                                [^Incorrect?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=INCORRECT&message={{/"post_id/": /"{comment.parent_id}/", /"correct_template/": /"PUT THE LINK TO THE CORRECT TEMPLATE HERE/"}})
                                 """
                 # If the class cannot be identified
                 elif match_result[0] == 1:
                     reply = f"""
                             Sadly, I don't know what template this meme is using.
-                            [Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/", /"template/": /"PUT LINK TO TEMPLATE HERE/"}})
+
+                            [^Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/", /"template_link/": /"PUT LINK TO TEMPLATE HERE/", /"template_name/": /"PUT NAME OF TEMPLATE HERE/", /"extra_info/": /"PUT EXTRA INFO HERE, IF THERE IS ANY}})
                             """
                 # If it's not a photo
                 elif match_result[0] == 2:
@@ -255,14 +258,14 @@ def main():
                     reply = "That's not a photo!"
                 # If it isn't a top level comment
                 elif match_result[0] == 3:
-                    print(f"\033[0;33;40m [WARNING] Not top level comment, {comment.parent_id}")
+                    print(f"\033[0;33;40m [WARNING] Not top level comment, {comment.id}")
                 # If there is an http error
                 elif match_result[0] == 4:
                     print(
-                        f"\033[0;31;40m [ERROR] HTTP error, status code: {match_result[1]}, message: {match_result[2]}")
+                        f"\033[0;31;40m [ERROR] HTTP error from comment {comment.id}, status code: {match_result[1]}, message: {match_result[2]}")
                 # If there is a general error
                 else:
-                    print(f"\033[0;31;40m [ERROR] General error, {match_result[1]}")
+                    print(f"\033[0;31;40m [ERROR] General error from comment {comment.id}, {match_result[1]}")
 
                 # Replay to the comment and print some debug
                 comment.reply(reply)
@@ -307,7 +310,7 @@ def main():
                         try:
                             # Validate Message
                             message_json = json.loads(message.body)
-                            temp = message_json["template"]
+                            temp = message_json["template_link"]
 
                             validate(temp)
 
@@ -322,8 +325,7 @@ def main():
                             message.reply("That does not seem to have a valid url!")
                         # Check if correct formatting
                         except KeyError:
-                            message.reply(
-                                "We did not understand the format of your request. Please check your formatting and try again.")
+                            message.reply("We did not understand the format of your request. Please check your formatting and try again.")
                         finally:
                             message.mark_read()
             counter = 0
