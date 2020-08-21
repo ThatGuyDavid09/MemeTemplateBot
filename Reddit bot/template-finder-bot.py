@@ -5,6 +5,7 @@
 import csv
 import json
 import os
+import sys
 import shutil
 import time
 import logging
@@ -18,6 +19,7 @@ from email.mime.text import MIMEText
 
 import praw
 import requests
+import webbrowser
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from praw.models import Message
@@ -107,6 +109,38 @@ def is_commented(comment_look):
         return False
 
 
+def get_img_from_url(img_url):
+    """
+    Saves image to disk from url
+    :param img_url: String, url
+    :return: 0 if all ok, 1 if not image
+    """
+    # If it is an image, save it to the disk
+    meme = ""
+
+    image_formats = (".png", ".jpeg", ".jpg")
+
+    if img_url[-4:] in image_formats:
+        img_response = requests.get(img_url, stream=True)
+
+        with open(f"img.{img_url[-4:]}", "wb") as out_file:
+            shutil.copyfileobj(img_response.raw, out_file)
+
+        meme = f"img.{img_url[-4:]}"
+        del img_url
+    elif img_url[-5:] in image_formats:
+        img_response = requests.get(img_url, stream=True)
+
+        with open(f"img.{img_url[-5:]}", "wb") as out_file:
+            shutil.copyfileobj(img_response.raw, out_file)
+
+        meme = f"img.{img_url[-5:]}"
+        del img_url
+    else:
+        return 1
+    return meme
+
+
 def get_class(comment_look, debug=False):
     """
     Gets the class of a comment
@@ -127,6 +161,7 @@ def get_class(comment_look, debug=False):
         if comment_look.parent_id[:3] == "t3_":
             id_to_get = comment_look.parent_id
         else:
+            logging.info(f"{comment_look.id} not top level comment, ignoring reply")
             return [3]
 
         # This literally just loops the code if reddit has a bad gateway error, yes it happens that often
@@ -146,6 +181,7 @@ def get_class(comment_look, debug=False):
                 continue
             # If there is a normal http error
             elif f.status_code != 200 and f.status_code < 500:
+                logging.error(f"http error - status code: {f.status_code}, message: {f.json()['message']}")
                 return [4, f.status_code, f.json()["message"]]
             # If everything is ok
             else:
@@ -157,38 +193,33 @@ def get_class(comment_look, debug=False):
 
                 logging.debug("img url:  " + img_url)
 
-                # If it is an image, save it to the disk
-                meme = ""
-
-                if img_url[-4:] in image_formats:
-                    img_response = requests.get(img_url, stream=True)
-
-                    with open(f"img.{img_url[-4:]}", "wb") as out_file:
-                        shutil.copyfileobj(img_response.raw, out_file)
-
-                    meme = f"img.{img_url[-4:]}"
-                    del img_url
-                elif img_url[-5:] in image_formats:
-                    img_response = requests.get(img_url, stream=True)
-
-                    with open(f"img.{img_url[-5:]}", "wb") as out_file:
-                        shutil.copyfileobj(img_response.raw, out_file)
-
-                    meme = f"img.{img_url[-5:]}"
-                    del img_url
+                # If image, save to disk
+                if meme := get_img_from_url(img_url) != 1:
+                    bad_gateway = False
                 else:
+                    logging.debug(f"{img_url} not a photo")
                     return [2]
-                bad_gateway = False
 
                 # TODO make this a google search instead
-                # Loop through every template until a greater than 50 percent confidence
+                search_url = 'http://www.google.hr/searchbyimage/upload'
+                multipart = {'encoded_image': (meme, open(meme, 'rb')), 'image_content': ''}
+                response = requests.post(search_url, files=multipart, allow_redirects=False)
+                fetch_url = response.headers['Location']
+                webbrowser.open(fetch_url)
+    except:
+        pass
+
+# Old method
+"""                # Loop through every template until a greater than 50 percent confidence
                 for filename in os.listdir(directory):
                     if not filename.endswith(".csv"):
 
                         template = os.path.join(directory, filename)
                         confidence = ai_related_scripts.image_ai.check_match(template, meme)
+                        logging.debug(f"Confidence that {comment_look.id} is {template}: {confidence}")
                         # If there isn't an error
                         if confidence[0] == 0 and confidence[1] >= 50.0:
+                            logging.info(f"{comment_look.id} is probably of template {template}")
                             with open(r"Templates\templates.csv") as csv_file:
                                 csv_reader = csv.reader(csv_file, delimeter=",")
 
@@ -205,12 +236,14 @@ def get_class(comment_look, debug=False):
                             return [5, confidence[1]]
 
                     # Class not found
+                    logging.info(f"{comment_look.id} did not have a template")
                     return [1]
 
                 # Delete the image
                 os.remove(meme)
     except Exception as e:
-        return [5, e]
+        logging.error(e)
+        return [5, e]"""
 
 
 approved_subs = ["2wnr3g"]
@@ -282,19 +315,8 @@ def main():
 
                             [^Want to include this in future searches?](https://www.reddit.com/message/compose/?to=TemplateFinderBot&subject=REQUEST&message={{/"post_id/": /"{comment.parent_id}/", /"template_link/": /"PUT LINK TO TEMPLATE HERE/", /"template_name/": /"PUT NAME OF TEMPLATE HERE/", /"extra_info/": /"PUT EXTRA INFO HERE, IF THERE IS ANY}}) [^Github](https://github.com/ThatGuyDavid09/MemeTemplateBot/)
                             """
-                # If it's not a photo
-                elif match_result[0] == 2:
-                    logging.info(f"{comment.parent_id} not photo, ignoring reply")
-                # If it isn't a top level comment
-                elif match_result[0] == 3:
-                    logging.info(f"{comment.id} not top level comment, ignoring reply")
-                # If there is an http error
-                elif match_result[0] == 4:
-                    logging.error(
-                        f"HTTP error from comment {comment.id}, status code: {match_result[1]}, message: {match_result[2]}")
-                # If there is a general error
                 else:
-                    logging.error(f"General error from comment {comment.id}, {match_result[1]}")
+                    pass
 
                 # Replay to the comment and print some debug
                 comment.reply(reply)
