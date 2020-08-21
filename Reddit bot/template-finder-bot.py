@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 import time
+import logging
 from datetime import date
 from json.decoder import JSONDecodeError
 
@@ -53,6 +54,9 @@ def config():
 
     reddit.read_only = False
 
+    # Set up logger
+    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p', filename='templateFinderBot.log', level=logging.DEBUG)
+
 
 def load_config(config_file_name):
     """
@@ -64,18 +68,16 @@ def load_config(config_file_name):
         with open(config_file_name) as config_file:
             config_data = json.load(config_file)
         # Set config variables
-        do_debug = config_data["debug"]
         send_email = config_data["send_email"]
         email_address = config_data["email_address"]
     except KeyError:
-        config_dict = {"debug": False, "send_email": True, "email_address": "TBD"}
+        config_dict = {"send_email": True, "email_address": "TBD"}
 
         with open(config_file_name, "w") as config_file:
             json.dump(config_dict, config_file)
 
         with open("config.json") as config_file:
             config_data = json.load(config_file)
-        do_debug = config_data["debug"]
         send_email = config_data["send_email"]
         email_address = config_data["email_address"]
 
@@ -100,7 +102,7 @@ def is_commented(comment_look):
     for reply in comment_look.replies:
         # If username on one of the replies is equal to bot username
         if reply.author.name.lower() == "TemplateFinderBott".lower():
-            print(f"\033[0;33;40m [WARNING] Already replied to {comment_look.id}")
+            logging.info(f"Already replied to {comment_look.id}, ignoring reply")
             return True
         return False
 
@@ -137,9 +139,8 @@ def get_class(comment_look, debug=False):
             f = requests.get(url_to_send, headers=headers)
             # This is if reddit is dumb
             if f.status_code >= 500:
-                print(
-                    "\033[0;33;40m [REDDIT DUMB] Reddit's servers are being stupid again. There is no exception, just Reddit being Reddit.")
-                print("\033[0;33;40m [REDDIT DUMB] We'll wait for 5 seconds and then try again.")
+                logging.warning(
+                    "Reddit server error, waiting 5 seconds to try again")
                 time.sleep(5)
                 bad_gateway = True
                 continue
@@ -149,14 +150,12 @@ def get_class(comment_look, debug=False):
             # If everything is ok
             else:
                 parsed_json = f.json()
-                if debug:
-                    print("[DEBUG] " + parsed_json)
+                logging.debug("parsed json: " + parsed_json)
 
                 # Figure out if it is an image post by looking at its headers
                 img_url = parsed_json["data"]["children"][0]["data"]["url"]
 
-                if debug:
-                    print("[DEBUG] " + img_url)
+                logging.debug("img url:  " + img_url)
 
                 # If it is an image, save it to the disk
                 meme = ""
@@ -202,7 +201,7 @@ def get_class(comment_look, debug=False):
                                                 row["extra_info"]]
                         else:
                             # If there is an error
-                            print("[ERROR] " + confidence[1])
+                            logging.error(confidence[1])
                             return [5, confidence[1]]
 
                     # Class not found
@@ -223,8 +222,11 @@ approved_subs = ["2wnr3g"]
 # Loop through mentions
 # print(reddit.inbox.mentions(limit=10))
 
-# Main function
+
 def main():
+    config()
+    load_config("config.json")
+
     global todays_day
     counter = 0
 
@@ -237,8 +239,8 @@ def main():
             for comment in reddit.inbox.mentions(limit=1):
                 pass
         except ResponseException:
-            print(
-                f"\033[0;31;40m [FATAL ERROR] Reddit object likely not authenticated, received 401 error from authentication test")
+            logging.critical(
+                "Reddit object likely not authenticated, received 401 error from authentication test")
             break
 
         counter += 1
@@ -282,23 +284,21 @@ def main():
                             """
                 # If it's not a photo
                 elif match_result[0] == 2:
-                    print(f"\033[0;33;40m [WARNING] Not photo, {comment.parent_id}")
-                    reply = "That's not a photo!"
+                    logging.info(f"{comment.parent_id} not photo, ignoring reply")
                 # If it isn't a top level comment
                 elif match_result[0] == 3:
-                    print(f"\033[0;33;40m [WARNING] Not top level comment, {comment.id}")
+                    logging.info(f"{comment.id} not top level comment, ignoring reply")
                 # If there is an http error
                 elif match_result[0] == 4:
-                    print(
-                        f"\033[0;31;40m [ERROR] HTTP error from comment {comment.id}, status code: {match_result[1]}, message: {match_result[2]}")
+                    logging.error(
+                        f"HTTP error from comment {comment.id}, status code: {match_result[1]}, message: {match_result[2]}")
                 # If there is a general error
                 else:
-                    print(f"\033[0;31;40m [ERROR] General error from comment {comment.id}, {match_result[1]}")
+                    logging.error(f"General error from comment {comment.id}, {match_result[1]}")
 
                 # Replay to the comment and print some debug
                 comment.reply(reply)
-                print(f"\033[0;32;40m [REPLY] Replied to {comment.id} in {comment.subreddit}")
-                print(f"[REPLY] Replied: {reply}")
+                logging.info(f"Replied to {comment.id} in {comment.subreddit}")
 
         # time.sleep(10)
         # Do daily
@@ -396,6 +396,4 @@ Template suggestions: {template_suggestions}
 
 
 if __name__ == '__main__':
-    config()
-    load_config("config.json")
     main()
