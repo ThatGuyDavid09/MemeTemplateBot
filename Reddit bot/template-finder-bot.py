@@ -33,6 +33,27 @@ do_debug = False
 send_email = True
 email_address = "TBD"
 
+
+def config():
+    global reddit
+    global s
+    global image_class
+
+    # Authenticate email
+    s = smtplib.SMTP(host="smtp.gmail.com", port=587)
+    s.login("user", "password")
+
+    # authenticate bot
+    reddit = praw.Reddit(client_id="XXXXXXXXXX",
+                         client_secret="XXXXXXXXXXXXXX",
+                         refresh_token="XXXXXXXXXXXXXXXXXXXXX",
+                         user_agent="Meme finder by /u/TemplateFinderBot")
+
+    image_class = "_2_tDEnGMLxpM6uOa2kaDB3"
+
+    reddit.read_only = False
+
+
 def load_config(config_file_name):
     """
     Loads config and sets variables
@@ -58,20 +79,6 @@ def load_config(config_file_name):
         send_email = config_data["send_email"]
         email_address = config_data["email_address"]
 
-# Authenticate email
-s = smtplib.SMTP(host="smtp.gmail.com", port=587)
-s.login("user", "password")
-
-# authenticate bot
-reddit = praw.Reddit(client_id="XXXXXXXXXX",
-                     client_secret="XXXXXXXXXXXXXX",
-                     refresh_token="XXXXXXXXXXXXXXXXXXXXX",
-                     user_agent="Meme finder by /u/TemplateFinderBot")
-
-image_class = "_2_tDEnGMLxpM6uOa2kaDB3"
-
-reddit.read_only = False
-
 
 # This function takes the post from the comment it is passed, figures out if it's a photo or not, if it is, it runs the ai on it and returns
 # Its confidence and class number.
@@ -82,6 +89,20 @@ reddit.read_only = False
 # Code 3: The provided comment is not a top level comment, returned in format [3]
 # Code 4: HTTP error, returned in list with format [4, status_code, message]
 # Code 5, General error, returned with format [5, Exception]
+
+
+def is_commented(comment_look):
+    """
+    :param comment_look: praw Comment
+    :return: Boolean
+    """
+    comment_look.refresh()
+    for reply in comment_look.replies:
+        # If username on one of the replies is equal to bot username
+        if reply.author.name.lower() == "TemplateFinderBott".lower():
+            print(f"\033[0;33;40m [WARNING] Already replied to {comment_look.id}")
+            return True
+        return False
 
 
 def get_class(comment_look, debug=False):
@@ -160,9 +181,10 @@ def get_class(comment_look, debug=False):
                     return [2]
                 bad_gateway = False
 
+                # TODO make this a google search instead
                 # Loop through every template until a greater than 50 percent confidence
                 for filename in os.listdir(directory):
-                    if not file.endswith(".csv"):
+                    if not filename.endswith(".csv"):
 
                         template = os.path.join(directory, filename)
                         confidence = ai_related_scripts.image_ai.check_match(template, meme, debug)
@@ -193,14 +215,7 @@ def get_class(comment_look, debug=False):
 
 
 approved_subs = ["2wnr3g"]
-replied_to = []
 # Initialize replied_to from a csv file
-with open("replied_to.csv", "r") as file:
-    lines = file.readlines()
-
-for line in lines:
-    replied_to.append(line.replace("\n", ""))
-
 
 # print(lines)
 # print(replied_to)
@@ -212,7 +227,6 @@ for line in lines:
 def main():
     global todays_day
     counter = 0
-    load_config("config.json")
 
     template_suggestions = []
     incorrect_templates = []
@@ -231,12 +245,7 @@ def main():
 
         for comment in reddit.inbox.mentions(limit=50):
             # If its name is commented and it hasn't replied to the comment, reply to it and append the list to replied_to and a csv file
-            if comment.id not in replied_to and comment.subreddit_id in approved_subs:
-                replied_to.append(comment.id)
-
-                with open("replied_to.csv", "a+", newline="") as csv_file:
-                    writer = csv.writer(csv_file)
-                    writer.writerow([comment.id])
+            if not is_commented(comment) and comment.subreddit_id in approved_subs:
 
                 reply = ""
                 if do_debug:
@@ -358,21 +367,24 @@ def main():
 
                 # Message of email
                 if template_suggestions is None:
-                    message = f"""HEY! These are today's template suggestions:
-                                {template_suggestions}
+                    message = f"""
+HEY! These are today's template suggestions:
+{template_suggestions}
 
-                                -The reddit bot"""
+-The reddit bot"""
                 elif incorrect_templates is None:
-                    message = f"""HEY! These are today's incorrect templates:
-                                {incorrect_templates}
+                    message = f"""
+HEY! These are today's incorrect templates:
+{incorrect_templates}
 
-                                -The reddit bot"""
+-The reddit bot"""
                 else:
-                    message = f"""HEY! These are today's incorrect templates and template suggestions:
-                                                    Incorrect templates: {incorrect_templates}
-                                                    Template suggestions: {template_suggestions}
+                    message = f"""
+HEY! These are today's incorrect templates and template suggestions:
+Incorrect templates: {incorrect_templates}
+Template suggestions: {template_suggestions}
 
-                                                    -The reddit bot"""
+-The reddit bot"""
                 # Send email
                 msg.attach(MIMEText(message, "plain"))
 
@@ -384,4 +396,6 @@ def main():
 
 
 if __name__ == '__main__':
+    config()
+    load_config("config.json")
     main()
