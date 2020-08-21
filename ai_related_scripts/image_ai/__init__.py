@@ -3,6 +3,7 @@
 # This will allow for more obscure memes to be recognized
 
 import cv2
+import logging
 
 """
 To use:
@@ -24,12 +25,11 @@ def main(template, meme):
     print(check_match(template, meme))
 
 
-def check_match(template, meme, debug=False):
+def check_match(template, meme):
     """
     This calculates how similar template is to meme
     :param template: File path
     :param meme: File path
-    :param debug: Debug
     :return: [-1, Exception] if error, [0, confidence] if all ok
     """
     original = cv2.imread(template)
@@ -57,23 +57,11 @@ def check_match(template, meme, debug=False):
         else:
             number_keypoints = len(kp_2)
 
-        if debug:
-            print("[DEBUG] Keypoints 1ST Image: " + str(len(kp_1)))
-            print("[DEBUG] Keypoints 2ND Image: " + str(len(kp_2)))
-            print("[DEBUG] GOOD Matches:", len(good_points))
-            # Multiplied by 1000 to exaggerate any differences
-            print("[DEBUG] How good it's the match: ", len(good_points) / number_keypoints * 1000)
-
-            # Show images
-            result = cv2.drawMatches(original, kp_1, image_to_compare, kp_2, good_points, None)
-
-            cv2.imshow("result", cv2.resize(result, None, fx=0.4, fy=0.4))
-            cv2.imwrite("feature_matching.jpg", result)
-
-            cv2.imshow("Original", cv2.resize(original, None, fx=0.4, fy=0.4))
-            cv2.imshow("Duplicate", cv2.resize(image_to_compare, None, fx=0.4, fy=0.4))
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+        logging.debug("Keypoints 1ST Image: " + str(len(kp_1)))
+        logging.debug("Keypoints 2ND Image: " + str(len(kp_2)))
+        logging.debug("GOOD Matches:", len(good_points))
+        # Multiplied by 1000 to exaggerate any differences
+        logging.debug("How good it's the match: ", len(good_points) / number_keypoints * 1000)
 
         return [0, len(good_points) / number_keypoints * 1000]
     except Exception as e:
