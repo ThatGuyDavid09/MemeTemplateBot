@@ -186,7 +186,7 @@ def get_class(comment_look, debug=False):
                     if not filename.endswith(".csv"):
 
                         template = os.path.join(directory, filename)
-                        confidence = ai_related_scripts.image_ai.check_match(template, meme, debug)
+                        confidence = ai_related_scripts.image_ai.check_match(template, meme)
                         # If there isn't an error
                         if confidence[0] == 0 and confidence[1] >= 50.0:
                             with open(r"Templates\templates.csv") as csv_file:
