@@ -206,8 +206,10 @@ def get_class(comment_look, debug=False):
                 response = requests.post(search_url, files=multipart, allow_redirects=False)
                 fetch_url = response.headers['Location']
                 webbrowser.open(fetch_url)
-    except:
-        pass
+    except Exception as e:
+        logging.error(e)
+        return [5, e]
+
 
 # Old method
 """                # Loop through every template until a greater than 50 percent confidence
